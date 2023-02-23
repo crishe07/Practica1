@@ -14,37 +14,36 @@ import random
 
 K=10
 NPROD = 3
-N=2
+N=5
  
 def dar_numero(lvalue,semaf):
-    if lvalue.value !=-1:
+    if lvalue.value !=-1: #es trampa?
         semaf.acquire()
-        n=random.randint(1,10)
+        if lvalue.value==-2:
+            n=random.randint(1,10)
+        else:
+            n=random.randint(lvalue.value,100)
         lvalue.value=n
         semaf.release()
             
         
 def coger_numero(Lista,Lsemaf):
-    m=11
+    m=111
     for i in range(NPROD):
         l=Lista[i].value
-        if l < m and l!=-1:
+        if l < m and l!=-1: #es trampa?
             m=l
             k=i
-        else:
-            print("fallo")
-            #k=-1
     return (m,k)
     
         
 def producer(lvalue, semaf, Empty, Nempty):
-    for v in range(N):
+    for v in range(N+1):
         Empty.acquire() #espera a que consuma
         dar_numero(lvalue,semaf)
         print(f"producer {current_process().name} produciendo {lvalue.value} \n" )
         Nempty.release() #signal para que consuma
-    #Empty.acquire()
-    #lvalue.value=-1 #deja de producir 
+    lvalue.value=-1 #deja de producir 
         
     
     
@@ -57,7 +56,7 @@ def consumer(Lista, Lsemaf, Empty, Nempty, result):
         print(result)
         Empty[j].release() #signal para que produzca
         Nempty[j].acquire() #espero a que produzca
-    #return result
+    return result
     
     
         
@@ -65,16 +64,13 @@ def consumer(Lista, Lsemaf, Empty, Nempty, result):
 def main():
     values=[Value('i',-2) for i in range(NPROD)]
     Lsemaf=[Lock() for i in range(NPROD)]
-   
-    
-    result=[]
-
-    non_empty = [Semaphore(0) for i in range(NPROD)] #sem(0)
+    non_empty = [Semaphore(0) for i in range(NPROD)] 
     #non_empty ¿hay productos en producer?
-    empty = [Lock() for i in range(NPROD)] #sem(1)
+    empty = [Lock() for i in range(NPROD)] 
     #empty: ¿esta vacio cada productor?
     
-    
+    result=[]
+  
     prodlst = [Process(target=producer,
                         name=f'prod_{i}',
                         args=(values[i], Lsemaf[i], empty[i], non_empty[i]))
@@ -86,10 +82,12 @@ def main():
     
     for p in prodlst:
         p.start()
+    
     consum.start()
     
     for p in prodlst:
         p.join()
+    
     consum.join()
     
     print (result)
