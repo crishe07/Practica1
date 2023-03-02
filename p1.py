@@ -19,7 +19,6 @@ N=15 #capacidad de los productores
 
 def dar_numero(lvalue,semaf):
     assert lvalue.value != -1
-    #if lvalue.value != -1: 
     semaf.acquire()
     if lvalue.value == -2:
         lvalue.value=random.randint(0,5) #inicilización
